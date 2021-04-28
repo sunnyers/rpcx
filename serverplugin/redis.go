@@ -14,7 +14,7 @@ import (
 	"github.com/rpcxio/libkv"
 	"github.com/rpcxio/libkv/store"
 	"github.com/rpcxio/libkv/store/redis"
-	"github.com/smallnest/rpcx/log"
+	"github.com/sunnyers/rpcx/log"
 )
 
 func init() {

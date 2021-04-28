@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smallnest/rpcx/client"
-	"github.com/smallnest/rpcx/protocol"
+	"github.com/sunnyers/rpcx/client"
+	"github.com/sunnyers/rpcx/protocol"
 )
 
 type HeartbeatHandler struct{}

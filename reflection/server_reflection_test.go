@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/kr/pretty"
-	testutils "github.com/smallnest/rpcx/_testutils"
+	testutils "github.com/sunnyers/rpcx/_testutils"
 	"github.com/stretchr/testify/assert"
 )
 

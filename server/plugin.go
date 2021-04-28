@@ -4,8 +4,8 @@ import (
 	"context"
 	"net"
 
-	"github.com/smallnest/rpcx/errors"
-	"github.com/smallnest/rpcx/protocol"
+	"github.com/sunnyers/rpcx/errors"
+	"github.com/sunnyers/rpcx/protocol"
 	"github.com/soheilhy/cmux"
 )
 
