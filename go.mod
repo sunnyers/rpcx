@@ -1,6 +1,6 @@
 module github.com/sunnyers/rpcx
 
-go 1.16
+go 1.13
 
 require (
 	github.com/ChimeraCoder/gojson v1.1.0
@@ -34,12 +34,12 @@ require (
 	github.com/psampaz/go-mod-outdated v0.7.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/rpcxio/libkv v0.5.1-0.20210420120011-1fceaedca8a5
 	github.com/rs/cors v1.7.0
 	github.com/rubyist/circuitbreaker v2.2.1+incompatible
 	github.com/smallnest/quick v0.0.0-20200505103731-c8c83f9c76d3
 	github.com/soheilhy/cmux v0.1.4
 	github.com/stretchr/testify v1.7.0
+	github.com/sunnyersxio/libkv v1.0.0
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/templexxx/cpufeat v0.0.0-20180724012125-cef66df7f161 // indirect
 	github.com/templexxx/xor v0.0.0-20191217153810-f85b25db303b // indirect

@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rpcxio/libkv"
-	"github.com/rpcxio/libkv/store"
-	"github.com/rpcxio/libkv/store/consul"
+	"github.com/sunnyersxio/libkv"
+	"github.com/sunnyersxio/libkv/store"
+	"github.com/sunnyersxio/libkv/store/consul"
 	"github.com/sunnyers/rpcx/log"
 )
 

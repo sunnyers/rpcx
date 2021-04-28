@@ -9,12 +9,12 @@ import (
 	"strings"
 	"sync"
 	"time"
-
+	
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/rpcxio/libkv"
-	"github.com/rpcxio/libkv/store"
-	"github.com/rpcxio/libkv/store/redis"
 	"github.com/sunnyers/rpcx/log"
+	"github.com/sunnyersxio/libkv"
+	"github.com/sunnyersxio/libkv/store"
+	"github.com/sunnyersxio/libkv/store/redis"
 )
 
 func init() {
@@ -35,10 +35,10 @@ type RedisRegisterPlugin struct {
 	metasLock      sync.RWMutex
 	metas          map[string]string
 	UpdateInterval time.Duration
-
+	
 	Options *store.Config
 	kv      store.Store
-
+	
 	dying chan struct{}
 	done  chan struct{}
 }
@@ -51,7 +51,7 @@ func (p *RedisRegisterPlugin) Start() error {
 	if p.dying == nil {
 		p.dying = make(chan struct{})
 	}
-
+	
 	if p.kv == nil {
 		kv, err := libkv.NewStore(store.REDIS, p.RedisServers, p.Options)
 		if err != nil {
@@ -60,18 +60,18 @@ func (p *RedisRegisterPlugin) Start() error {
 		}
 		p.kv = kv
 	}
-
+	
 	err := p.kv.Put(p.BasePath, []byte("rpcx_path"), &store.WriteOptions{IsDir: true})
 	if err != nil && !strings.Contains(err.Error(), "Not a file") {
 		log.Errorf("cannot create redis path %s: %v", p.BasePath, err)
 		return err
 	}
-
+	
 	if p.UpdateInterval > 0 {
 		ticker := time.NewTicker(p.UpdateInterval)
 		go func() {
 			defer p.kv.Close()
-
+			
 			// refresh service TTL
 			for {
 				select {
@@ -90,16 +90,16 @@ func (p *RedisRegisterPlugin) Start() error {
 						kvPair, err := p.kv.Get(nodePath)
 						if err != nil {
 							log.Infof("can't get data of node: %s, because of %v", nodePath, err.Error())
-
+							
 							p.metasLock.RLock()
 							meta := p.metas[name]
 							p.metasLock.RUnlock()
-
+							
 							err = p.kv.Put(nodePath, []byte(meta), &store.WriteOptions{TTL: p.UpdateInterval * 2})
 							if err != nil {
 								log.Errorf("cannot re-create redis path %s: %v", nodePath, err)
 							}
-
+							
 						} else {
 							v, _ := url.ParseQuery(string(kvPair.Value))
 							for key, value := range extra {
@@ -112,7 +112,7 @@ func (p *RedisRegisterPlugin) Start() error {
 			}
 		}()
 	}
-
+	
 	return nil
 }
 
@@ -126,7 +126,7 @@ func (p *RedisRegisterPlugin) Stop() error {
 		}
 		p.kv = kv
 	}
-
+	
 	for _, name := range p.Services {
 		nodePath := fmt.Sprintf("%s/%s/%s", p.BasePath, name, p.ServiceAddress)
 		exist, err := p.kv.Exists(nodePath)
@@ -139,10 +139,10 @@ func (p *RedisRegisterPlugin) Stop() error {
 			log.Infof("delete path %s", nodePath, err)
 		}
 	}
-
+	
 	close(p.dying)
 	<-p.done
-
+	
 	return nil
 }
 
@@ -169,7 +169,7 @@ func (p *RedisRegisterPlugin) Register(name string, rcvr interface{}, metadata s
 		err = errors.New("Register service `name` can't be empty")
 		return
 	}
-
+	
 	if p.kv == nil {
 		redis.Register()
 		kv, err := libkv.NewStore(store.REDIS, p.RedisServers, p.Options)
@@ -179,29 +179,29 @@ func (p *RedisRegisterPlugin) Register(name string, rcvr interface{}, metadata s
 		}
 		p.kv = kv
 	}
-
+	
 	err = p.kv.Put(p.BasePath, []byte("rpcx_path"), &store.WriteOptions{IsDir: true})
 	if err != nil && !strings.Contains(err.Error(), "Not a file") {
 		log.Errorf("cannot create redis path %s: %v", p.BasePath, err)
 		return err
 	}
-
+	
 	nodePath := fmt.Sprintf("%s/%s", p.BasePath, name)
 	err = p.kv.Put(nodePath, []byte(name), &store.WriteOptions{IsDir: true})
 	if err != nil && !strings.Contains(err.Error(), "Not a file") {
 		log.Errorf("cannot create redis path %s: %v", nodePath, err)
 		return err
 	}
-
+	
 	nodePath = fmt.Sprintf("%s/%s/%s", p.BasePath, name, p.ServiceAddress)
 	err = p.kv.Put(nodePath, []byte(metadata), &store.WriteOptions{TTL: p.UpdateInterval * 2})
 	if err != nil {
 		log.Errorf("cannot create redis path %s: %v", nodePath, err)
 		return err
 	}
-
+	
 	p.Services = append(p.Services, name)
-
+	
 	p.metasLock.Lock()
 	if p.metas == nil {
 		p.metas = make(map[string]string)
@@ -215,12 +215,12 @@ func (p *RedisRegisterPlugin) Unregister(name string) (err error) {
 	if len(p.Services) == 0 {
 		return nil
 	}
-
+	
 	if strings.TrimSpace(name) == "" {
 		err = errors.New("Register service `name` can't be empty")
 		return
 	}
-
+	
 	if p.kv == nil {
 		redis.Register()
 		kv, err := libkv.NewStore(store.REDIS, p.RedisServers, p.Options)
@@ -230,28 +230,28 @@ func (p *RedisRegisterPlugin) Unregister(name string) (err error) {
 		}
 		p.kv = kv
 	}
-
+	
 	err = p.kv.Put(p.BasePath, []byte("rpcx_path"), &store.WriteOptions{IsDir: true})
 	if err != nil && !strings.Contains(err.Error(), "Not a file") {
 		log.Errorf("cannot create redis path %s: %v", p.BasePath, err)
 		return err
 	}
-
+	
 	nodePath := fmt.Sprintf("%s/%s", p.BasePath, name)
 	err = p.kv.Put(nodePath, []byte(name), &store.WriteOptions{IsDir: true})
 	if err != nil && !strings.Contains(err.Error(), "Not a file") {
 		log.Errorf("cannot create redis path %s: %v", nodePath, err)
 		return err
 	}
-
+	
 	nodePath = fmt.Sprintf("%s/%s/%s", p.BasePath, name, p.ServiceAddress)
-
+	
 	err = p.kv.Delete(nodePath)
 	if err != nil {
 		log.Errorf("cannot create consul path %s: %v", nodePath, err)
 		return err
 	}
-
+	
 	var services = make([]string, 0, len(p.Services)-1)
 	for _, s := range p.Services {
 		if s != name {
@@ -259,7 +259,7 @@ func (p *RedisRegisterPlugin) Unregister(name string) (err error) {
 		}
 	}
 	p.Services = services
-
+	
 	p.metasLock.Lock()
 	if p.metas == nil {
 		p.metas = make(map[string]string)
