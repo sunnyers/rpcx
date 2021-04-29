@@ -9,7 +9,6 @@ import (
 	"github.com/sunnyersxio/libkv"
 	"github.com/sunnyersxio/libkv/store"
 	"github.com/sunnyersxio/libkv/store/zmq"
-	"github.com/sunnyersxio/libkv/store/zookeeper"
 	"net"
 	"net/url"
 	"strings"
@@ -60,11 +59,6 @@ func (p *ZmqRegisterPlugin) Start() error {
 		}
 		p.kv = kv
 	}
-	
-	if p.BasePath[0] == '/' {
-		p.BasePath = p.BasePath[1:]
-	}
-	
 	err := p.kv.Put(p.BasePath, []byte("rpcx_path"), &store.WriteOptions{IsDir: true})
 	if err != nil {
 		log.Fatalf("cannot create zk path %s: %v", p.BasePath, err)
@@ -90,25 +84,24 @@ func (p *ZmqRegisterPlugin) Start() error {
 					}
 					//set this same metrics for all services at this server
 					for _, name := range p.Services {
-						nodePath := fmt.Sprintf("%s/%s/%s", p.BasePath, name, p.ServiceAddress)
-						kvPaire, err := p.kv.Get(nodePath)
+						kvPaire, err := p.kv.Get(p.BasePath)
 						if err != nil {
-							log.Infof("can't get data of node: %s, because of %v", nodePath, err.Error())
+							log.Infof("can't get data of node: %s, because of %v", p.BasePath, err.Error())
 							
 							p.metasLock.RLock()
 							meta := p.metas[name]
 							p.metasLock.RUnlock()
 							
-							err = p.kv.Put(nodePath, []byte(meta), &store.WriteOptions{TTL: p.UpdateInterval * 2})
+							err = p.kv.Put(p.BasePath, []byte(meta), &store.WriteOptions{TTL: p.UpdateInterval * 2})
 							if err != nil {
-								log.Errorf("cannot re-create zookeeper path %s: %v", nodePath, err)
+								log.Errorf("cannot re-create zookeeper path %s: %v", p.BasePath, err)
 							}
 						} else {
 							v, _ := url.ParseQuery(string(kvPaire.Value))
 							for key, value := range extra {
 								v.Set(key, value)
 							}
-							p.kv.Put(nodePath, []byte(v.Encode()), &store.WriteOptions{TTL: p.UpdateInterval * 2})
+							p.kv.Put(p.BasePath, []byte(v.Encode()), &store.WriteOptions{TTL: p.UpdateInterval * 2})
 						}
 					}
 				}
@@ -130,20 +123,16 @@ func (p *ZmqRegisterPlugin) Stop() error {
 		p.kv = kv
 	}
 	
-	if p.BasePath[0] == '/' {
-		p.BasePath = p.BasePath[1:]
-	}
 	
 	for _, name := range p.Services {
-		nodePath := fmt.Sprintf("%s/%s/%s", p.BasePath, name, p.ServiceAddress)
-		exist, err := p.kv.Exists(nodePath)
+		exist, err := p.kv.Exists(p.BasePath)
 		if err != nil {
-			log.Errorf("cannot delete zk path %s: %v", nodePath, err)
+			log.Errorf("cannot delete zk path %s: %v", p.BasePath, err)
 			continue
 		}
 		if exist {
-			p.kv.Delete(nodePath)
-			log.Infof("delete zk path %s", nodePath, err)
+			p.kv.Delete(p.BasePath)
+			log.Infof("delete zk path %s", p.BasePath,name, err)
 		}
 	}
 	
@@ -178,8 +167,8 @@ func (p *ZmqRegisterPlugin) Register(name string, rcvr interface{}, metadata str
 	}
 	
 	if p.kv == nil {
-		zookeeper.Register()
-		kv, err := libkv.NewStore(store.ZK, p.zmqServers, nil)
+		zmq.Register()
+		kv, err := libkv.NewStore(store.ZMQ, p.zmqServers, nil)
 		if err != nil {
 			log.Errorf("cannot create zk registry: %v", err)
 			return err
@@ -187,26 +176,9 @@ func (p *ZmqRegisterPlugin) Register(name string, rcvr interface{}, metadata str
 		p.kv = kv
 	}
 	
-	if p.BasePath[0] == '/' {
-		p.BasePath = p.BasePath[1:]
-	}
 	err = p.kv.Put(p.BasePath, []byte("rpcx_path"), &store.WriteOptions{IsDir: true})
 	if err != nil {
 		log.Errorf("cannot create zk path %s: %v", p.BasePath, err)
-		return err
-	}
-	
-	nodePath := fmt.Sprintf("%s/%s", p.BasePath, name)
-	err = p.kv.Put(nodePath, []byte(name), &store.WriteOptions{IsDir: true})
-	if err != nil {
-		log.Errorf("cannot create zk path %s: %v", nodePath, err)
-		return err
-	}
-	
-	nodePath = fmt.Sprintf("%s/%s/%s", p.BasePath, name, p.ServiceAddress)
-	_, _, err = p.kv.AtomicPut(nodePath, []byte(metadata), nil, &store.WriteOptions{TTL: p.UpdateInterval * 2})
-	if err != nil {
-		log.Errorf("cannot create zk path %s: %v", nodePath, err)
 		return err
 	}
 	
@@ -235,8 +207,8 @@ func (p *ZmqRegisterPlugin) Unregister(name string) (err error) {
 	}
 	
 	if p.kv == nil {
-		zookeeper.Register()
-		kv, err := libkv.NewStore(store.ZK, p.ZooKeeperServers, nil)
+		zmq.Register()
+		kv, err := libkv.NewStore(store.ZMQ, p.zmqServers, nil)
 		if err != nil {
 			log.Errorf("cannot create zk registry: %v", err)
 			return err
@@ -244,27 +216,9 @@ func (p *ZmqRegisterPlugin) Unregister(name string) (err error) {
 		p.kv = kv
 	}
 	
-	if p.BasePath[0] == '/' {
-		p.BasePath = p.BasePath[1:]
-	}
 	err = p.kv.Put(p.BasePath, []byte("rpcx_path"), &store.WriteOptions{IsDir: true})
 	if err != nil {
 		log.Errorf("cannot create zk path %s: %v", p.BasePath, err)
-		return err
-	}
-	
-	nodePath := fmt.Sprintf("%s/%s", p.BasePath, name)
-	err = p.kv.Put(nodePath, []byte(name), &store.WriteOptions{IsDir: true})
-	if err != nil {
-		log.Errorf("cannot create zk path %s: %v", nodePath, err)
-		return err
-	}
-	
-	nodePath = fmt.Sprintf("%s/%s/%s", p.BasePath, name, p.ServiceAddress)
-	
-	err = p.kv.Delete(nodePath)
-	if err != nil {
-		log.Errorf("cannot create consul path %s: %v", nodePath, err)
 		return err
 	}
 	
