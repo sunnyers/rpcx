@@ -25,7 +25,7 @@ type ZmqRegisterPlugin struct {
 	// service address, for example, tcp@127.0.0.1:8972, quic@127.0.0.1:1234
 	ServiceAddress string
 	// zookeeper addresses
-	zmqServers []string
+	ZmqServers []string
 	// base path for rpcx server, for example com/example/rpcx
 	BasePath string
 	Metrics  metrics.Registry
@@ -52,7 +52,7 @@ func (p *ZmqRegisterPlugin) Start() error {
 	}
 	
 	if p.kv == nil {
-		kv, err := libkv.NewStore(store.ZMQ, p.zmqServers, p.Options)
+		kv, err := libkv.NewStore(store.ZMQ, p.ZmqServers, p.Options)
 		if err != nil {
 			log.Fatalf("cannot create zk registry: %v", err)
 			return err
@@ -115,7 +115,7 @@ func (p *ZmqRegisterPlugin) Start() error {
 // Stop unregister all services.
 func (p *ZmqRegisterPlugin) Stop() error {
 	if p.kv == nil {
-		kv, err := libkv.NewStore(store.ZK, p.zmqServers, p.Options)
+		kv, err := libkv.NewStore(store.ZK, p.ZmqServers, p.Options)
 		if err != nil {
 			log.Errorf("cannot create zk registry: %v", err)
 			return err
@@ -168,7 +168,7 @@ func (p *ZmqRegisterPlugin) Register(name string, rcvr interface{}, metadata str
 	
 	if p.kv == nil {
 		zmq.Register()
-		kv, err := libkv.NewStore(store.ZMQ, p.zmqServers, nil)
+		kv, err := libkv.NewStore(store.ZMQ, p.ZmqServers, nil)
 		if err != nil {
 			log.Errorf("cannot create zk registry: %v", err)
 			return err
@@ -208,7 +208,7 @@ func (p *ZmqRegisterPlugin) Unregister(name string) (err error) {
 	
 	if p.kv == nil {
 		zmq.Register()
-		kv, err := libkv.NewStore(store.ZMQ, p.zmqServers, nil)
+		kv, err := libkv.NewStore(store.ZMQ, p.ZmqServers, nil)
 		if err != nil {
 			log.Errorf("cannot create zk registry: %v", err)
 			return err
