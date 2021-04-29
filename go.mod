@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/influxdata/influxdb1-client v0.0.0-20200827194710-b269163b24ab
-	github.com/json-iterator/go v1.1.10
+	github.com/json-iterator/go v1.1.11
 	github.com/juju/ratelimit v1.0.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kavu/go_reuseport v1.5.0
@@ -39,7 +39,7 @@ require (
 	github.com/smallnest/quick v0.0.0-20200505103731-c8c83f9c76d3
 	github.com/soheilhy/cmux v0.1.4
 	github.com/stretchr/testify v1.7.0
-	github.com/sunnyersxio/libkv v1.0.0
+	github.com/sunnyersxio/libkv v1.0.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/templexxx/cpufeat v0.0.0-20180724012125-cef66df7f161 // indirect
 	github.com/templexxx/xor v0.0.0-20191217153810-f85b25db303b // indirect
