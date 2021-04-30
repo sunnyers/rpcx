@@ -115,7 +115,7 @@ func (p *ZmqRegisterPlugin) Start() error {
 // Stop unregister all services.
 func (p *ZmqRegisterPlugin) Stop() error {
 	if p.kv == nil {
-		kv, err := libkv.NewStore(store.ZK, p.ZmqServers, p.Options)
+		kv, err := libkv.NewStore(store.ZMQ, p.ZmqServers, p.Options)
 		if err != nil {
 			log.Errorf("cannot create zk registry: %v", err)
 			return err

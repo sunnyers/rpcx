@@ -5,6 +5,7 @@ import (
 	"github.com/sunnyersxio/libkv"
 	"github.com/sunnyersxio/libkv/store"
 	"github.com/sunnyersxio/libkv/store/zmq"
+	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
 	"strings"
 	"sync"
 	"time"
@@ -40,53 +41,52 @@ func NewZmqDiscovery(basePath string, servicePath string, etcdAddr []string, opt
 		return nil, err
 	}
 	
-	return NewZmqDiscoveryStore(basePath+"/"+servicePath, kv)
+	return NewZmqDiscoveryStore(basePath, kv)
 }
 
 // NewRedisDiscoveryStore return a new RedisDiscovery with specified store.
 func NewZmqDiscoveryStore(basePath string, kv store.Store) (ServiceDiscovery, error) {
-	if len(basePath) > 1 && strings.HasSuffix(basePath, "/") {
-		basePath = basePath[:len(basePath)-1]
-	}
-	
 	d := &ZmqDiscovery{basePath: basePath, kv: kv}
 	d.stopCh = make(chan struct{})
 	
-	ps, err := kv.List(basePath)
-	if err != nil {
+	ps,err := kv.Get(basePath)
+	if err == nil {
 		log.Infof("cannot get services of from registry: %v, err: %v", basePath, err)
 		panic(err)
 	}
-	pairs := make([]*KVPair, 0, len(ps))
-	var prefix string
-	for _, p := range ps {
-		if prefix == "" {
-			if strings.HasPrefix(p.Key, "/") {
-				if strings.HasPrefix(d.basePath, "/") {
-					prefix = d.basePath + "/"
-				} else {
-					prefix = "/" + d.basePath + "/"
-				}
-			} else {
-				if strings.HasPrefix(d.basePath, "/") {
-					prefix = d.basePath[1:] + "/"
-				} else {
-					prefix = d.basePath + "/"
-				}
-			}
-		}
-		if p.Key == prefix[:len(prefix)-1] {
-			continue
-		}
-		k := strings.TrimPrefix(p.Key, prefix)
-		pair := &KVPair{Key: k, Value: string(p.Value)}
-		if d.filter != nil && !d.filter(pair) {
-			continue
-		}
-		pairs = append(pairs, pair)
-	}
+	
+	fmt.Printf(ps)
+	//
+	//pairs := make([]*KVPair, 0, len(ps))
+	//var prefix string
+	//for _, p := range ps {
+	//	if prefix == "" {
+	//		if strings.HasPrefix(p.Key, "/") {
+	//			if strings.HasPrefix(d.basePath, "/") {
+	//				prefix = d.basePath + "/"
+	//			} else {
+	//				prefix = "/" + d.basePath + "/"
+	//			}
+	//		} else {
+	//			if strings.HasPrefix(d.basePath, "/") {
+	//				prefix = d.basePath[1:] + "/"
+	//			} else {
+	//				prefix = d.basePath + "/"
+	//			}
+	//		}
+	//	}
+	//	if p.Key == prefix[:len(prefix)-1] {
+	//		continue
+	//	}
+	//	k := strings.TrimPrefix(p.Key, prefix)
+	//	pair := &KVPair{Key: k, Value: string(p.Value)}
+	//	if d.filter != nil && !d.filter(pair) {
+	//		continue
+	//	}
+	//	pairs = append(pairs, pair)
+	//}
 	d.pairsMu.Lock()
-	d.pairs = pairs
+	//d.pairs = pairs
 	d.pairsMu.Unlock()
 	d.RetriesAfterWatchFailed = -1
 	
@@ -96,11 +96,7 @@ func NewZmqDiscoveryStore(basePath string, kv store.Store) (ServiceDiscovery, er
 
 // NewRedisDiscoveryTemplate returns a new RedisDiscovery template.
 func NewZmqDiscoveryTemplate(basePath string, etcdAddr []string, options *store.Config) (ServiceDiscovery, error) {
-	if len(basePath) > 1 && strings.HasSuffix(basePath, "/") {
-		basePath = basePath[:len(basePath)-1]
-	}
-	
-	kv, err := libkv.NewStore(store.REDIS, etcdAddr, options)
+	kv, err := libkv.NewStore(store.ZMQ, etcdAddr, options)
 	if err != nil {
 		log.Infof("cannot create store: %v", err)
 		return nil, err
@@ -111,7 +107,7 @@ func NewZmqDiscoveryTemplate(basePath string, etcdAddr []string, options *store.
 
 // Clone clones this ServiceDiscovery with new servicePath.
 func (d *ZmqDiscovery) Clone(servicePath string) (ServiceDiscovery, error) {
-	return NewZmqDiscoveryStore(d.basePath+"/"+servicePath, d.kv)
+	return NewZmqDiscoveryStore(d.basePath, d.kv)
 }
 
 // SetFilter sets the filer.
