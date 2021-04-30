@@ -10,7 +10,6 @@ import (
 	"github.com/sunnyersxio/libkv/store"
 	"github.com/sunnyersxio/libkv/store/zmq"
 	"net"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -82,28 +81,7 @@ func (p *ZmqRegisterPlugin) Start() error {
 						extra["calls"] = fmt.Sprintf("%.2f", metrics.GetOrRegisterMeter("calls", p.Metrics).RateMean())
 						extra["connections"] = fmt.Sprintf("%.2f", metrics.GetOrRegisterMeter("connections", p.Metrics).RateMean())
 					}
-					//set this same metrics for all services at this server
-					for _, name := range p.Services {
-						kvPaire, err := p.kv.Get(name)
-						if err != nil {
-							log.Infof("can't get data of node: %s, because of %v", p.BasePath, err.Error())
-							
-							p.metasLock.RLock()
-							meta := p.metas[name]
-							p.metasLock.RUnlock()
-							
-							err = p.kv.Put(p.BasePath, []byte(meta), &store.WriteOptions{TTL: p.UpdateInterval * 2})
-							if err != nil {
-								log.Errorf("cannot re-create zookeeper path %s: %v", p.BasePath, err)
-							}
-						} else {
-							v, _ := url.ParseQuery(string(kvPaire.Value))
-							for key, value := range extra {
-								v.Set(key, value)
-							}
-							p.kv.Put(p.BasePath, []byte(v.Encode()), &store.WriteOptions{TTL: p.UpdateInterval * 2})
-						}
-					}
+					p.kv.Put(p.BasePath, []byte(p.BasePath), &store.WriteOptions{TTL: p.UpdateInterval * 2})
 				}
 			}
 		}()
@@ -123,7 +101,6 @@ func (p *ZmqRegisterPlugin) Stop() error {
 		p.kv = kv
 	}
 	
-	
 	for _, name := range p.Services {
 		exist, err := p.kv.Exists(p.BasePath)
 		if err != nil {
@@ -132,7 +109,7 @@ func (p *ZmqRegisterPlugin) Stop() error {
 		}
 		if exist {
 			p.kv.Delete(p.BasePath)
-			log.Infof("delete zk path %s", p.BasePath,name, err)
+			log.Infof("delete zk path %s", p.BasePath, name, err)
 		}
 	}
 	
