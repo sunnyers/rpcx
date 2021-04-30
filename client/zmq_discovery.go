@@ -55,7 +55,7 @@ func NewZmqDiscoveryStore(basePath string, kv store.Store) (ServiceDiscovery, er
 		panic(err)
 	}
 	
-	fmt.Printf(ps)
+	fmt.Println(ps)
 	//
 	//pairs := make([]*KVPair, 0, len(ps))
 	//var prefix string
