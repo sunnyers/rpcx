@@ -84,7 +84,7 @@ func (p *ZmqRegisterPlugin) Start() error {
 					}
 					//set this same metrics for all services at this server
 					for _, name := range p.Services {
-						kvPaire, err := p.kv.Get(p.BasePath)
+						kvPaire, err := p.kv.Get(name)
 						if err != nil {
 							log.Infof("can't get data of node: %s, because of %v", p.BasePath, err.Error())
 							
