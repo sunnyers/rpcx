@@ -1,12 +1,10 @@
 package client
 
 import (
-	"fmt"
 	"github.com/sunnyers/rpcx/log"
 	"github.com/sunnyersxio/libkv"
 	"github.com/sunnyersxio/libkv/store"
 	"github.com/sunnyersxio/libkv/store/zmq"
-	"strings"
 	"sync"
 	"time"
 )
@@ -49,42 +47,19 @@ func NewZmqDiscoveryStore(basePath string, kv store.Store) (ServiceDiscovery, er
 	d := &ZmqDiscovery{basePath: basePath, kv: kv}
 	d.stopCh = make(chan struct{})
 	
-	ps, err := kv.Get(basePath)
-	if err == nil {
+	ps, err := kv.List(basePath)
+	if err != nil {
 		log.Infof("cannot get services of from registry: %v, err: %v", basePath, err)
 		panic(err)
 	}
-	
-	fmt.Println(ps)
-	//
-	//pairs := make([]*KVPair, 0, len(ps))
-	//var prefix string
-	//for _, p := range ps {
-	//	if prefix == "" {
-	//		if strings.HasPrefix(p.Key, "/") {
-	//			if strings.HasPrefix(d.basePath, "/") {
-	//				prefix = d.basePath + "/"
-	//			} else {
-	//				prefix = "/" + d.basePath + "/"
-	//			}
-	//		} else {
-	//			if strings.HasPrefix(d.basePath, "/") {
-	//				prefix = d.basePath[1:] + "/"
-	//			} else {
-	//				prefix = d.basePath + "/"
-	//			}
-	//		}
-	//	}
-	//	if p.Key == prefix[:len(prefix)-1] {
-	//		continue
-	//	}
-	//	k := strings.TrimPrefix(p.Key, prefix)
-	//	pair := &KVPair{Key: k, Value: string(p.Value)}
-	//	if d.filter != nil && !d.filter(pair) {
-	//		continue
-	//	}
-	//	pairs = append(pairs, pair)
-	//}
+	pairs := make([]*KVPair, 0, len(ps))
+	for _, p := range ps {
+		pair := &KVPair{Key: basePath, Value: string(p.Value)}
+		if d.filter != nil && !d.filter(pair) {
+			continue
+		}
+		pairs = append(pairs, pair)
+	}
 	d.pairsMu.Lock()
 	//d.pairs = pairs
 	d.pairsMu.Unlock()
@@ -203,30 +178,8 @@ func (d *ZmqDiscovery) watch() {
 					d.pairsMu.Unlock()
 					continue
 				}
-				
-				var prefix string
 				for _, p := range ps {
-					if prefix == "" {
-						if strings.HasPrefix(p.Key, "/") {
-							if strings.HasPrefix(d.basePath, "/") {
-								prefix = d.basePath + "/"
-							} else {
-								prefix = "/" + d.basePath + "/"
-							}
-						} else {
-							if strings.HasPrefix(d.basePath, "/") {
-								prefix = d.basePath[1:] + "/"
-							} else {
-								prefix = d.basePath + "/"
-							}
-						}
-					}
-					if p.Key == prefix[:len(prefix)-1] {
-						continue
-					}
-					
-					k := strings.TrimPrefix(p.Key, prefix)
-					pair := &KVPair{Key: k, Value: string(p.Value)}
+					pair := &KVPair{Key: p.Key, Value: string(p.Value)}
 					if d.filter != nil && !d.filter(pair) {
 						continue
 					}
