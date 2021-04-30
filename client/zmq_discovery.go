@@ -61,7 +61,7 @@ func NewZmqDiscoveryStore(basePath string, kv store.Store) (ServiceDiscovery, er
 		pairs = append(pairs, pair)
 	}
 	d.pairsMu.Lock()
-	//d.pairs = pairs
+	d.pairs = pairs
 	d.pairsMu.Unlock()
 	d.RetriesAfterWatchFailed = -1
 	
