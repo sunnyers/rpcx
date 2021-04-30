@@ -54,7 +54,7 @@ func NewZmqDiscoveryStore(basePath string, kv store.Store) (ServiceDiscovery, er
 	}
 	pairs := make([]*KVPair, 0, len(ps))
 	for _, p := range ps {
-		pair := &KVPair{Key: basePath, Value: string(p.Value)}
+		pair := &KVPair{Key: p.Key, Value: string(p.Value)}
 		if d.filter != nil && !d.filter(pair) {
 			continue
 		}
