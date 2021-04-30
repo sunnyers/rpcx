@@ -1,11 +1,11 @@
 package client
 
 import (
+	"fmt"
 	"github.com/sunnyers/rpcx/log"
 	"github.com/sunnyersxio/libkv"
 	"github.com/sunnyersxio/libkv/store"
 	"github.com/sunnyersxio/libkv/store/zmq"
-	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
 	"strings"
 	"sync"
 	"time"
@@ -49,7 +49,7 @@ func NewZmqDiscoveryStore(basePath string, kv store.Store) (ServiceDiscovery, er
 	d := &ZmqDiscovery{basePath: basePath, kv: kv}
 	d.stopCh = make(chan struct{})
 	
-	ps,err := kv.Get(basePath)
+	ps, err := kv.Get(basePath)
 	if err == nil {
 		log.Infof("cannot get services of from registry: %v, err: %v", basePath, err)
 		panic(err)
