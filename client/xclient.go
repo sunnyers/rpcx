@@ -215,7 +215,7 @@ func (c *xClient) watch(ch chan []*KVPair) {
 		if c.selector != nil {
 			c.selector.UpdateServer(servers)
 		}
-
+		log.Infof("xclient watch servers is %#v",c.servers)
 		c.mu.Unlock()
 	}
 }
@@ -245,6 +245,8 @@ func (c *xClient) selectClient(ctx context.Context, servicePath, serviceMethod s
 	if k == "" {
 		return "", nil, ErrXClientNoServer
 	}
+	
+	log.Infof("xclient selectClient servers is %s %s %s",k,servicePath,serviceMethod)
 	client, err := c.getCachedClient(k, servicePath, serviceMethod, args)
 	return k, client, err
 }
