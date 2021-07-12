@@ -178,12 +178,11 @@ func (d *ZmqDiscovery) watch() {
 					d.pairsMu.Unlock()
 					continue
 				}
-				for k, p := range ps {
+				for _, p := range ps {
 					pair := &KVPair{Key: string(p.Value), Value: string(p.Value)}
 					if d.filter != nil && !d.filter(pair) {
 						continue
 					}
-					log.Infof("ZmqDiscovery watch ps[%d] is %s %s",k,p.Key,string(p.Value))
 					pairs = append(pairs, pair)
 				}
 				d.pairsMu.Lock()
