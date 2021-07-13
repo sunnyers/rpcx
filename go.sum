@@ -531,6 +531,8 @@ github.com/sunnyersxio/libkv v1.1.6 h1:gjwMi3LPLkyx3CfNHvbemJdonRobMd7HTgMSJdbHk
 github.com/sunnyersxio/libkv v1.1.6/go.mod h1:6GZTNza8p17ToN7zShMKFToAHxgRNkH3VYqwRqvg940=
 github.com/sunnyersxio/libkv v1.1.8 h1:fj3SsqXVfvkjADxinRDra6ugcP//k+vjhSayTZ7lp84=
 github.com/sunnyersxio/libkv v1.1.8/go.mod h1:6GZTNza8p17ToN7zShMKFToAHxgRNkH3VYqwRqvg940=
+github.com/sunnyersxio/libkv v1.1.9 h1:DDTwfOWu4uFAb06gKOOSIE9qmiU8rtF5KC3g+7ETVo0=
+github.com/sunnyersxio/libkv v1.1.9/go.mod h1:6GZTNza8p17ToN7zShMKFToAHxgRNkH3VYqwRqvg940=
 github.com/syndtr/goleveldb v1.0.0 h1:fBdIW9lB4Iz0n9khmH8w27SJ3QEJ7+IgjPEwGSZiFdE=
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07 h1:UyzmZLoiDWMRywV4DUYb9Fbt8uiOSooupjTq10vpvnU=
